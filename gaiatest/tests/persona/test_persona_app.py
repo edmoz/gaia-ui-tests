@@ -42,6 +42,14 @@ class TestPersonaStandard(GaiaTestCase):
         self.marionette.switch_to_frame(self.app.frame)
         self.marionette.switch_to_frame(self.marionette.find_element(*element))
 
+    def _check_for_email(self, email):
+        assertions = self.marionette.find_elements(*self._app_login_assertion_text)
+        print 'len of li.login', len(assertions)
+        for assertion in assertions:
+            print 'assertion:', assertion
+            if assertion.find(email):
+                return assertion
+
     def test_persona_standard_sign_in(self):
         """
         Test standard sign in to UI tests app
@@ -63,11 +71,14 @@ class TestPersonaStandard(GaiaTestCase):
         self._switch_to_app(self._app_identity_frame)
         self.wait_for_element_displayed(*self._app_ready_event)
 
+        # Find the right assertion in the list of li.login
+        assertion = self.wait_for_condition(_check_for_email(self.user.email))
+
         # Validate assertion
         # XXX hack: previous sign ins can result in multiple assertions printed, we want
         # the last one, but don't really have an event for it.  We sleep and get lucky
-        time.sleep(3)
-        assertion = self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
+        # time.sleep(3)
+        # assertion = self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
         unpacked = persona.unpackAssertion(assertion)
 
         # sanity-check the assertion
