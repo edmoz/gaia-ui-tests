@@ -158,3 +158,15 @@ class Persona(Base):
                 "claim": self.decode(claim),
                 "payload": self.decode(payload)}
 
+    def check_for_email(self, assertions, email):
+        print 'len of li.login', len(assertions)
+        for assertion in assertions:
+            unpacked = self.unpackAssertion(assertion.text)
+            print 'unpacked:', unpacked
+            if unpacked['claim']['principal']['email'] == email:
+                return assertion, unpacked
+            else:
+                return False
+
+    def getAssertion(self, assertions, email):
+        assertion, unpacked = self.wait_for_condition(self.check_for_email(assertions, email))
