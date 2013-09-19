@@ -5,7 +5,6 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.persona.app import Persona
 from gaiatest.mocks.persona_test_user import PersonaTestUser
-import time
 
 AUDIENCE = "app://uitest.gaiamobile.org"
 
@@ -14,11 +13,13 @@ class TestPersonaStandard(GaiaTestCase):
 
     _mozId_tests_button_locator = ('link text', 'navigator.mozId tests')
     _standard_request_button_locator = ('id', 't-request')
-    _app_identity_frame = ('css selector', 'iframe[src*="identity"]')
+    _logout_button_locator = ('id', 't-logout')
 
+    _app_identity_frame = ('css selector', 'iframe[src*="identity"]')
     _app_ready_event = ('css selector', 'li.ready')
     _app_login_event = ('css selector', 'li.login')
     _app_login_assertion_text = ('css selector', 'li.login div.assertion')
+    _app_logout_event = ('css selector', 'li.logout')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -64,10 +65,7 @@ class TestPersonaStandard(GaiaTestCase):
         self.wait_for_element_displayed(*self._app_ready_event)
 
         # Validate assertion
-        # XXX hack: previous sign ins can result in multiple assertions printed, we want
-        # the last one, but don't really have an event for it.  We sleep and get lucky
-        time.sleep(3)
-        assertion = self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
+        assertion = self.marionette.find_element(*self._app_login_assertion_text).text
         unpacked = persona.unpackAssertion(assertion)
 
         # sanity-check the assertion
@@ -80,3 +78,6 @@ class TestPersonaStandard(GaiaTestCase):
         self.assertEqual(verified['email'], self.user.email)
         self.assertEqual(verified['audience'], AUDIENCE)
 
+        # Logout so that next run doesn't see old assertions
+        self._wait_and_click(self._logout_button_locator)
+        self.wait_for_element_displayed(*self._app_logout_event)
